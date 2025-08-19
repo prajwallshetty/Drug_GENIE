@@ -364,7 +364,7 @@ const SignupPage: React.FC = () => {
         </motion.div>
       </div>
     </div>
-  );
+  );   
 };
 
 export default SignupPage;
