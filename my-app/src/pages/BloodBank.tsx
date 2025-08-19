@@ -1,0 +1,392 @@
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Droplets, MapPin, Phone, Clock, Plus, AlertCircle } from 'lucide-react';
+import { BloodRequest } from '../types';
+import { getBloodRequests, saveBloodRequest, getCurrentUser } from '../utils/storage';
+import { v4 as uuidv4 } from 'uuid';
+import { format } from 'date-fns';
+import toast from 'react-hot-toast';
+
+const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+const urgencyLevels = [
+  { value: 'low', label: 'Low', color: 'bg-green-100 text-green-800' },
+  { value: 'medium', label: 'Medium', color: 'bg-yellow-100 text-yellow-800' },
+  { value: 'high', label: 'High', color: 'bg-orange-100 text-orange-800' },
+  { value: 'critical', label: 'Critical', color: 'bg-red-100 text-red-800' }
+];
+
+const BloodBank: React.FC = () => {
+  const [requests, setRequests] = useState<BloodRequest[]>([]);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    bloodGroup: '',
+    urgency: 'medium' as 'low' | 'medium' | 'high' | 'critical',
+    location: '',
+    contactNumber: '',
+    hospitalName: '',
+    unitsNeeded: 1
+  });
+
+  const currentUser = getCurrentUser();
+
+  useEffect(() => {
+    const allRequests = getBloodRequests();
+    setRequests(allRequests.filter(req => req.status === 'active'));
+  }, []);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) {
+      toast.error('Please log in to create a blood request');
+      return;
+    }
+
+    const request: BloodRequest = {
+      id: uuidv4(),
+      requesterId: currentUser.id,
+      requesterName: currentUser.name,
+      bloodGroup: formData.bloodGroup,
+      urgency: formData.urgency,
+      location: formData.location,
+      contactNumber: formData.contactNumber,
+      hospitalName: formData.hospitalName,
+      unitsNeeded: formData.unitsNeeded,
+      createdAt: new Date(),
+      status: 'active'
+    };
+
+    saveBloodRequest(request);
+    setRequests([request, ...requests]);
+    setShowForm(false);
+    resetForm();
+    toast.success('Blood request created successfully');
+  };
+
+  const resetForm = () => {
+    setFormData({
+      bloodGroup: '',
+      urgency: 'medium',
+      location: '',
+      contactNumber: '',
+      hospitalName: '',
+      unitsNeeded: 1
+    });
+  };
+
+  const getUrgencyStyle = (urgency: string) => {
+    const level = urgencyLevels.find(l => l.value === urgency);
+    return level?.color || 'bg-gray-100 text-gray-800';
+  };
+
+  const canDonate = (requesterBloodGroup: string, donorBloodGroup: string): boolean => {
+    const compatibility: { [key: string]: string[] } = {
+      'A+': ['A+', 'A-', 'O+', 'O-'],
+      'A-': ['A-', 'O-'],
+      'B+': ['B+', 'B-', 'O+', 'O-'],
+      'B-': ['B-', 'O-'],
+      'AB+': ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+      'AB-': ['A-', 'B-', 'AB-', 'O-'],
+      'O+': ['O+', 'O-'],
+      'O-': ['O-']
+    };
+    
+    return compatibility[requesterBloodGroup]?.includes(donorBloodGroup) || false;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-red-100 rounded-full">
+              <Droplets className="h-6 w-6 text-red-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Blood Bank & Donation</h1>
+              <p className="text-gray-600">Find blood donors and request blood donations</p>
+            </div>
+          </div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowForm(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Request Blood</span>
+          </motion.button>
+        </div>
+      </motion.div>
+
+      {/* Blood Request Form */}
+      {showForm && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+        >
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Create Blood Request</h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Blood Group Needed
+                </label>
+                <select
+                  required
+                  value={formData.bloodGroup}
+                  onChange={(e) => setFormData({ ...formData, bloodGroup: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="">Select Blood Group</option>
+                  {bloodGroups.map(group => (
+                    <option key={group} value={group}>{group}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Urgency Level
+                </label>
+                <select
+                  value={formData.urgency}
+                  onChange={(e) => setFormData({ ...formData, urgency: e.target.value as any })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  {urgencyLevels.map(level => (
+                    <option key={level.value} value={level.value}>{level.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Hospital Name
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.hospitalName}
+                  onChange={(e) => setFormData({ ...formData, hospitalName: e.target.value })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  placeholder="e.g., City General Hospital"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Units Needed
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  max="10"
+                  value={formData.unitsNeeded}
+                  onChange={(e) => setFormData({ ...formData, unitsNeeded: parseInt(e.target.value) })}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Location
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="e.g., Downtown, City Name"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Contact Number
+              </label>
+              <input
+                type="tel"
+                required
+                value={formData.contactNumber}
+                onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                placeholder="e.g., +1 (555) 123-4567"
+              />
+            </div>
+
+            <div className="flex space-x-4">
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="submit"
+                className="px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600 transition-colors"
+              >
+                Create Request
+              </motion.button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowForm(false);
+                  resetForm();
+                }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      )}
+
+      {/* Blood Requests List */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-white rounded-lg shadow-sm border border-gray-200"
+      >
+        <div className="p-6 border-b border-gray-200">
+          <h2 className="text-xl font-semibold text-gray-900">Active Blood Requests ({requests.length})</h2>
+        </div>
+        
+        {requests.length === 0 ? (
+          <div className="p-12 text-center">
+            <Droplets className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Requests</h3>
+            <p className="text-gray-600">There are currently no active blood donation requests</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-gray-200">
+            {requests.map((request, index) => (
+              <motion.div
+                key={request.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.1 }}
+                className="p-6 hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <div className="p-2 bg-red-100 rounded-full">
+                        <Droplets className="h-5 w-5 text-red-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900">
+                          {request.bloodGroup} Blood Needed
+                        </h3>
+                        <p className="text-sm text-gray-600">Requested by {request.requesterName}</p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getUrgencyStyle(request.urgency)}`}>
+                        {request.urgency.charAt(0).toUpperCase() + request.urgency.slice(1)}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600">
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{request.hospitalName}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <MapPin className="h-4 w-4" />
+                        <span>{request.location}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Phone className="h-4 w-4" />
+                        <span>{request.contactNumber}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="h-4 w-4" />
+                        <span>{format(new Date(request.createdAt), 'MMM dd, yyyy')}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-3 flex items-center space-x-4">
+                      <span className="text-sm font-medium text-gray-900">
+                        Units needed: {request.unitsNeeded}
+                      </span>
+                      {currentUser && canDonate(request.bloodGroup, currentUser.bloodGroup) && (
+                        <div className="flex items-center space-x-2 text-green-600">
+                          <AlertCircle className="h-4 w-4" />
+                          <span className="text-sm font-medium">You can donate!</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex flex-col space-y-2">
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        window.open(`tel:${request.contactNumber}`, '_self');
+                      }}
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
+                    >
+                      Contact Donor
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => {
+                        const message = `I saw your blood donation request for ${request.bloodGroup} blood at ${request.hospitalName}. I would like to help.`;
+                        window.open(`sms:${request.contactNumber}?body=${encodeURIComponent(message)}`, '_self');
+                      }}
+                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                    >
+                      Send SMS
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
+      </motion.div>
+
+      {/* Compatibility Guide */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-blue-50 border border-blue-200 rounded-lg p-6"
+      >
+        <h3 className="text-lg font-semibold text-blue-900 mb-4">Blood Donation Compatibility Guide</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div>
+            <h4 className="font-medium text-blue-800 mb-2">Universal Donors</h4>
+            <p className="text-blue-700">O- can donate to anyone</p>
+            <p className="text-blue-700">O+ can donate to all positive types</p>
+          </div>
+          <div>
+            <h4 className="font-medium text-blue-800 mb-2">Universal Recipients</h4>
+            <p className="text-blue-700">AB+ can receive from anyone</p>
+            <p className="text-blue-700">AB- can receive from all negative types</p>
+          </div>
+          <div>
+            <h4 className="font-medium text-blue-800 mb-2">Type A</h4>
+            <p className="text-blue-700">A+ can receive: A+, A-, O+, O-</p>
+            <p className="text-blue-700">A- can receive: A-, O-</p>
+          </div>
+          <div>
+            <h4 className="font-medium text-blue-800 mb-2">Type B</h4>
+            <p className="text-blue-700">B+ can receive: B+, B-, O+, O-</p>
+            <p className="text-blue-700">B- can receive: B-, O-</p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export default BloodBank;
