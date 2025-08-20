@@ -10,9 +10,7 @@ import {
   BookOpen,
   Droplets,
   Activity,
-  Calendar,
-  AlertCircle,
-  CheckCircle
+  Calendar
 } from 'lucide-react';
 import { getCurrentUser } from '../utils/storage';
 import { Link } from 'react-router-dom';
