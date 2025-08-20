@@ -2,11 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/Layout';
-// Update the import path to match the actual file name and extension, e.g.:
 import Dashboard from './pages/Dashboard';
-// If the file is missing, create it at src/pages/Dashboard.tsx.
 import LoginPage from './pages/auth/LoginPage';
-// import SignupPage from './pages/auth/SignupPage';
+import SignupPage from './pages/auth/SignupPage';
 import AIAssistant from './pages/AIAssistant';
 import DrugChecker from './pages/DrugChecker';
 import MedicineLibrary from './pages/MedicineLibrary';
@@ -14,7 +12,6 @@ import Reminders from './pages/Reminders';
 import BloodBank from './pages/BloodBank';
 import SymptomChecker from './pages/SymptomChecker';
 import { getCurrentUser } from './utils/storage';
-import SignupPage from './pages/auth/SignupPage';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
