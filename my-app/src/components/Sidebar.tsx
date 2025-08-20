@@ -10,7 +10,6 @@ import {
   Stethoscope,
   LayoutDashboard,
   Activity,
-  Database
 } from 'lucide-react';
 
 const navigationItems = [
@@ -21,7 +20,6 @@ const navigationItems = [
   { name: 'Reminders', href: '/reminders', icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-50' },
   { name: 'Blood Bank', href: '/blood-bank', icon: Droplets, color: 'text-red-600', bgColor: 'bg-red-50' },
   { name: 'Symptom Checker', href: '/symptom-checker', icon: Stethoscope, color: 'text-cyan-600', bgColor: 'bg-cyan-50' },
-  { name: 'Data Storage', href: '/storage', icon: Database, color: 'text-gray-600', bgColor: 'bg-gray-50' },
 ];
 
 const Sidebar: React.FC = () => {
