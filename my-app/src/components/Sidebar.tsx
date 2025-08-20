@@ -12,6 +12,10 @@ import {
   Activity,
 } from 'lucide-react';
 
+interface SidebarProps {
+  isSidebarOpen: boolean;
+}
+
 const navigationItems = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard, color: 'text-blue-600', bgColor: 'bg-blue-50' },
   { name: 'AI Assistant', href: '/ai-assistant', icon: Bot, color: 'text-purple-600', bgColor: 'bg-purple-50' },
@@ -22,17 +26,18 @@ const navigationItems = [
   { name: 'Symptom Checker', href: '/symptom-checker', icon: Stethoscope, color: 'text-cyan-600', bgColor: 'bg-cyan-50' },
 ];
 
-const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen }) => {
   const location = useLocation();
 
   return (
-    <motion.aside 
+    <motion.aside
       initial={{ x: -300, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-      className="fixed left-0 top-20 h-[calc(100vh-5rem)] w-72 bg-white/95 backdrop-blur-sm shadow-xl border-r border-gray-200 pt-6 overflow-y-auto"
+      animate={{ x: isSidebarOpen ? 0 : -300, opacity: isSidebarOpen ? 1 : 0 }}
+      transition={{ duration: 0.3 }}
+      className="fixed left-0 top-20 h-[calc(100vh-5rem)] w-72 bg-white/95 backdrop-blur-sm shadow-xl border-r border-gray-200 pt-6 overflow-y-auto z-40"
     >
       <nav className="px-4">
+        {/* Menu */}
         <div className="mb-8">
           <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 px-4">
             Healthcare Tools
@@ -45,7 +50,7 @@ const Sidebar: React.FC = () => {
                   key={item.name}
                   initial={{ x: -50, opacity: 0 }}
                   animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: 0.1 * index }}
+                  transition={{ delay: 0.05 * index }}
                 >
                   <Link
                     to={item.href}
@@ -81,7 +86,7 @@ const Sidebar: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+          transition={{ delay: 0.5 }}
           className="mx-4 p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-200"
         >
           <div className="flex items-center space-x-3 mb-3">

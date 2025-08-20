@@ -1,11 +1,16 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bell, User, Search, Heart, LogOut } from 'lucide-react';
+import { Bell, User, Search, Heart, LogOut, Menu, X } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  onToggleSidebar: () => void;
+  isSidebarOpen: boolean;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, isSidebarOpen }) => {
   const currentUser = getCurrentUser();
   const navigate = useNavigate();
 
@@ -24,6 +29,15 @@ const Navbar: React.FC = () => {
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
+          {/* Sidebar Toggle Button */}
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition"
+          >
+            {isSidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+
+          {/* Logo */}
           <motion.div 
             whileHover={{ scale: 1.05 }}
             className="flex items-center space-x-3"
@@ -33,12 +47,13 @@ const Navbar: React.FC = () => {
             </div>
             <div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
-                MediAI
+                DrugGenIe
               </span>
               <p className="text-xs text-gray-500 -mt-1">Healthcare Assistant</p>
             </div>
           </motion.div>
           
+          {/* Search Box */}
           <div className="hidden md:flex items-center space-x-2 bg-gray-50 rounded-xl px-4 py-2 ml-8 border border-gray-200">
             <Search className="h-4 w-4 text-gray-500" />
             <input 
@@ -49,7 +64,9 @@ const Navbar: React.FC = () => {
           </div>
         </div>
 
+        {/* Right side (Notifications + Profile) */}
         <div className="flex items-center space-x-4">
+          {/* Notification */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -61,6 +78,7 @@ const Navbar: React.FC = () => {
             </span>
           </motion.button>
           
+          {/* Profile + Dropdown */}
           <div className="flex items-center space-x-3">
             <div className="hidden md:block text-right">
               <p className="text-sm font-semibold text-gray-900">
