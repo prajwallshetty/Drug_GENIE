@@ -105,4 +105,4 @@ export const medicines: Medicine[] = [
     manufacturer: 'Lipitor',
     price: 25.99
   }
-];
+]; 
