@@ -87,7 +87,7 @@ const MedicineLibrary: React.FC = () => {
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
               Medicines ({filteredMedicines.length})
-            </h2>
+            </h2>  
           </div>
           <div className="max-h-96 overflow-y-auto">
             {filteredMedicines.map((medicine, index) => (
