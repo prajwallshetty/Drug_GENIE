@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Search, BookOpen, Filter, DollarSign, AlertTriangle, Info } from 'lucide-react';
+import { Search, BookOpen, Filter, AlertTriangle, Info } from 'lucide-react';
 import { medicines } from '../data/medicines';
 import { Medicine } from '../types';
 
