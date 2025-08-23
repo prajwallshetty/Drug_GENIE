@@ -39,4 +39,4 @@ const createBloodRequest = expressAsyncHandler(async (req: AuthRequest, res: Res
 });
 
 // Make sure both functions are exported correctly
-export { getActiveBloodRequests, createBloodRequest };
+export { getActiveBloodRequests, createBloodRequest }; 
