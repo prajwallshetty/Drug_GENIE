@@ -1,7 +1,7 @@
 import mongoose, { Document, Model } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
-// Define and EXPORT the interface for the User document
+// Interface to define the properties of a User document
 export interface IUser extends Document {
   name: string;
   email: string;
@@ -9,9 +9,12 @@ export interface IUser extends Document {
   age: number;
   bloodGroup: string;
   gender: string;
+  createdAt: Date;
+  updatedAt: Date;
   matchPassword(enteredPassword: string): Promise<boolean>;
 }
 
+// Interface for the model to add static methods if needed
 interface IUserModel extends Model<IUser> {}
 
 const userSchema = new mongoose.Schema<IUser, IUserModel>({
@@ -23,12 +26,16 @@ const userSchema = new mongoose.Schema<IUser, IUserModel>({
   gender: { type: String, required: true },
 }, { timestamps: true });
 
+// Middleware to hash password before saving a user
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) next();
+  if (!this.isModified('password')) {
+    return next();
+  }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
+// Method to compare entered password with the hashed password in the database
 userSchema.methods.matchPassword = async function (enteredPassword: string) {
   return await bcrypt.compare(enteredPassword, this.password);
 };

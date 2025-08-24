@@ -1,7 +1,25 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 
-const reminderSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+interface IReminder extends Document {
+  user: mongoose.Schema.Types.ObjectId;
+  medicineName: string;
+  dosage: string;
+  frequency: string;
+  times: string[];
+  startDate: Date;
+  endDate: Date;
+  isActive: boolean;
+  notes?: string;
+}
+
+interface IReminderModel extends Model<IReminder> {}
+
+const reminderSchema = new mongoose.Schema<IReminder, IReminderModel>({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User',
+  },
   medicineName: { type: String, required: true },
   dosage: { type: String, required: true },
   frequency: { type: String, required: true },
@@ -12,5 +30,5 @@ const reminderSchema = new mongoose.Schema({
   notes: { type: String },
 }, { timestamps: true });
 
-const Reminder = mongoose.model('Reminder', reminderSchema);
+const Reminder = mongoose.model<IReminder, IReminderModel>('Reminder', reminderSchema);
 export default Reminder;

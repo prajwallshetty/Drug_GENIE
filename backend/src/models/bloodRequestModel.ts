@@ -1,16 +1,40 @@
-import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
+import expressAsyncHandler from 'express-async-handler';
+import User, { IUser } from '../models/userModel';
+import { Request, Response, NextFunction } from 'express';
 
-const bloodRequestSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
-  requesterName: { type: String, required: true },
-  bloodGroup: { type: String, required: true },
-  unitsNeeded: { type: Number, required: true },
-  urgency: { type: String, enum: ['low', 'medium', 'high', 'critical'], required: true },
-  hospitalName: { type: String, required: true },
-  location: { type: String, required: true },
-  contactNumber: { type: String, required: true },
-  status: { type: String, enum: ['active', 'fulfilled', 'expired'], default: 'active' },
-}, { timestamps: true });
+// Define a custom interface for our request object that includes the user
+export interface AuthRequest extends Request {
+  user?: IUser;
+}
 
-const BloodRequest = mongoose.model('BloodRequest', bloodRequestSchema);
-export default BloodRequest;
+const protect = expressAsyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+  let token;
+
+  // Check for the token in the authorization header
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      // Get token from header (Bearer TOKEN)
+      token = req.headers.authorization.split(' ')[1];
+
+      // Verify the token using the secret key
+      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
+      
+      // Find the user by ID from the token payload and attach it to the request
+      // We exclude the password for security
+      req.user = await User.findById(decoded.id).select('-password');
+      
+      next(); // Proceed to the next middleware or route handler
+    } catch (error) {
+      res.status(401);
+      throw new Error('Not authorized, token failed');
+    }
+  }
+
+  if (!token) {
+    res.status(401);
+    throw new Error('Not authorized, no token');
+  }
+});
+
+export { protect };
