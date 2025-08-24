@@ -11,7 +11,7 @@ import MedicineLibrary from './pages/MedicineLibrary';
 import Reminders from './pages/Reminders';
 import BloodBank from './pages/BloodBank';
 import SymptomChecker from './pages/SymptomChecker';
-import { getCurrentUser } from './utils/storage';
+
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
