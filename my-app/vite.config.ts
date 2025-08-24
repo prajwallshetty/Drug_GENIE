@@ -6,8 +6,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      // This is the part that connects the frontend to the backend.
-      // It tells Vite: "any request that starts with /api, send it to localhost:5001"
+      // This is the crucial part that connects the frontend and backend.
+      // It tells Vite to forward any request starting with '/api' 
+      // to your backend server.
       '/api': {
         target: 'http://localhost:5001',
         changeOrigin: true,
