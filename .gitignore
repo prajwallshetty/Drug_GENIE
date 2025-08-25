@@ -1,5 +1,11 @@
 # Ignore all node_modules folders
 node_modules/
 
+# Environment variables (CRITICAL - prevents credential exposure)
+.env
+.env.local
+.env.production
+.env.staging
+
 # Ignore metadata files
 **/_metadata.json
