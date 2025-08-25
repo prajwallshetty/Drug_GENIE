@@ -30,11 +30,18 @@ const BloodBank: React.FC = () => {
   const currentUser = getCurrentUser();
 
   useEffect(() => {
-    const allRequests = getBloodRequests();
-    setRequests(allRequests.filter(req => req.status === 'active'));
+    const loadBloodRequests = async () => {
+      try {
+        const allRequests = await getBloodRequests();
+        setRequests(allRequests.filter(req => req.status === 'active'));
+      } catch (error) {
+        toast.error('Failed to load blood requests');
+      }
+    };
+    loadBloodRequests();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) {
       toast.error('Please log in to create a blood request');
@@ -55,11 +62,27 @@ const BloodBank: React.FC = () => {
       status: 'active'
     };
 
-    saveBloodRequest(request);
-    setRequests([request, ...requests]);
-    setShowForm(false);
-    resetForm();
-    toast.success('Blood request created successfully');
+    try {
+      await saveBloodRequest(request);
+      const updatedRequests = await getBloodRequests();
+      setRequests(updatedRequests.filter(req => req.status === 'active'));
+      
+      setShowForm(false);
+      setFormData({
+        bloodGroup: '',
+        urgency: 'medium',
+        location: '',
+        contactNumber: '',
+        hospitalName: '',
+        unitsNeeded: 1
+      });
+      
+      toast.success('Blood request created successfully!');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to create blood request. Please try again.';
+      toast.error(errorMessage);
+      console.error('Blood request error:', error);
+    }
   };
 
   const resetForm = () => {

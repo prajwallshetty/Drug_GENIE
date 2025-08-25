@@ -1,7 +1,7 @@
 import mongoose, { Document, Model } from 'mongoose';
 
 interface IReminder extends Document {
-  user: mongoose.Schema.Types.ObjectId;
+  userId: mongoose.Schema.Types.ObjectId;
   medicineName: string;
   dosage: string;
   frequency: string;
@@ -15,7 +15,7 @@ interface IReminder extends Document {
 interface IReminderModel extends Model<IReminder> {}
 
 const reminderSchema = new mongoose.Schema<IReminder, IReminderModel>({
-  user: {
+  userId: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User',

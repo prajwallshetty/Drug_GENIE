@@ -1,40 +1,44 @@
-import jwt from 'jsonwebtoken';
-import expressAsyncHandler from 'express-async-handler';
-import User, { IUser } from '../models/userModel';
-import { Request, Response, NextFunction } from 'express';
+import mongoose, { Document, Model } from 'mongoose';
 
-// Define a custom interface for our request object that includes the user
-export interface AuthRequest extends Request {
-  user?: IUser;
+interface IBloodRequest extends Document {
+  requesterId: mongoose.Schema.Types.ObjectId;
+  requesterName: string;
+  bloodGroup: string;
+  urgency: 'low' | 'medium' | 'high' | 'critical';
+  location: string;
+  contactNumber: string;
+  hospitalName: string;
+  unitsNeeded: number;
+  status: 'active' | 'fulfilled' | 'expired';
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const protect = expressAsyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
-  let token;
+interface IBloodRequestModel extends Model<IBloodRequest> {}
 
-  // Check for the token in the authorization header
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-    try {
-      // Get token from header (Bearer TOKEN)
-      token = req.headers.authorization.split(' ')[1];
+const bloodRequestSchema = new mongoose.Schema<IBloodRequest, IBloodRequestModel>({
+  requesterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User',
+  },
+  requesterName: { type: String, required: true },
+  bloodGroup: { type: String, required: true },
+  urgency: {
+    type: String,
+    enum: ['low', 'medium', 'high', 'critical'],
+    required: true,
+  },
+  location: { type: String, required: true },
+  contactNumber: { type: String, required: true },
+  hospitalName: { type: String, required: true },
+  unitsNeeded: { type: Number, required: true, min: 1 },
+  status: {
+    type: String,
+    enum: ['active', 'fulfilled', 'expired'],
+    default: 'active',
+  },
+}, { timestamps: true });
 
-      // Verify the token using the secret key
-      const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
-      
-      // Find the user by ID from the token payload and attach it to the request
-      // We exclude the password for security
-      req.user = await User.findById(decoded.id).select('-password');
-      
-      next(); // Proceed to the next middleware or route handler
-    } catch (error) {
-      res.status(401);
-      throw new Error('Not authorized, token failed');
-    }
-  }
-
-  if (!token) {
-    res.status(401);
-    throw new Error('Not authorized, no token');
-  }
-});
-
-export { protect };
+const BloodRequest = mongoose.model<IBloodRequest, IBloodRequestModel>('BloodRequest', bloodRequestSchema);
+export default BloodRequest;
