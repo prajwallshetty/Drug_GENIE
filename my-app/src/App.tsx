@@ -12,17 +12,20 @@ import Reminders from './pages/Reminders';
 import BloodBank from './pages/BloodBank';
 import SymptomChecker from './pages/SymptomChecker';
 import { getCurrentUser } from './utils/storage';
+import { getToken } from './services/api';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const currentUser = getCurrentUser();
-  return currentUser ? <>{children}</> : <Navigate to="/login" replace />;
+  const token = getToken();
+  return (currentUser && token) ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
 // Public Route Component (redirect to dashboard if logged in)
 const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const currentUser = getCurrentUser();
-  return !currentUser ? <>{children}</> : <Navigate to="/" replace />;
+  const token = getToken();
+  return (!currentUser || !token) ? <>{children}</> : <Navigate to="/" replace />;
 };
 
 function App() {

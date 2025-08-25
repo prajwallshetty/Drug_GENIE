@@ -18,19 +18,22 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const user = loginUser(formData.email, formData.password);
-    
-    if (user) {
-      toast.success(`Welcome back, ${user.name}!`);
-      navigate('/');
-    } else {
-      toast.error('Invalid credentials. Please check your email and password.');
+    try {
+      const user = await loginUser(formData.email, formData.password);
+      
+      if (user) {
+        toast.success(`Welcome back, ${user.name}!`);
+        navigate('/');
+      } else {
+        toast.error('Invalid credentials. Please check your email and password.');
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Login failed. Please try again.';
+      toast.error(errorMessage);
+      console.error('Login error:', error);
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   const features = [

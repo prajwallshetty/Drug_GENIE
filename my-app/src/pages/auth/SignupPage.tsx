@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Eye, EyeOff, Mail, Lock, User, Calendar, Droplets, ArrowRight, CheckCircle } from 'lucide-react';
-import { saveUser } from '../../utils/storage';
-import { User as UserType } from '../../types';
-import { v4 as uuidv4 } from 'uuid';
+import { registerUser } from '../../utils/storage';
 import toast from 'react-hot-toast';
 
 const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
@@ -27,25 +25,31 @@ const SignupPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const newUser: UserType = {
-      id: uuidv4(),
-      name: formData.name,
-      email: formData.email,
-      age: parseInt(formData.age),
-      bloodGroup: formData.bloodGroup,
-      gender: formData.gender,
-      createdAt: new Date()
-    };
-    
-    saveUser(newUser);
-    toast.success(`Welcome to MediAI, ${newUser.name}!`);
-    
-    // Redirect to dashboard
-    navigate('/');
-    setIsLoading(false);
+    try {
+      const userData = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        age: parseInt(formData.age),
+        bloodGroup: formData.bloodGroup,
+        gender: formData.gender,
+      };
+      
+      const newUser = await registerUser(userData);
+      
+      if (newUser) {
+        toast.success(`Welcome to MediAI, ${newUser.name}!`);
+        navigate('/');
+      } else {
+        toast.error('Registration failed. Please try again.');
+      }
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Registration failed. Please check your details and try again.';
+      toast.error(errorMessage);
+      console.error('Registration error:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const nextStep = () => {
