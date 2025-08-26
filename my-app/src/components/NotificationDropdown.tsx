@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, Check, Droplets, Clock, AlertCircle, Settings } from 'lucide-react';
+import { Bell, X, Check, Droplets, Clock, AlertCircle, Settings, Trash2 } from 'lucide-react';
 import { notificationService, Notification } from '../services/notificationService';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -55,6 +55,16 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = React.memo(({ 
       toast.success('All notifications marked as read');
     } catch (error) {
       toast.error('Failed to mark all as read');
+    }
+  }, []);
+
+  const handleClearAll = useCallback(async () => {
+    try {
+      await notificationService.clearAllNotifications();
+      setNotifications([]);
+      toast.success('All notifications cleared');
+    } catch (error) {
+      toast.error('Failed to clear notifications');
     }
   }, []);
 
@@ -132,13 +142,24 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = React.memo(({ 
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
               <div className="flex items-center space-x-2">
-                {hasUnreadNotifications && (
-                  <button
-                    onClick={handleMarkAllAsRead}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                  >
-                    Mark all read
-                  </button>
+                {notifications.length > 0 && (
+                  <>
+                    {hasUnreadNotifications && (
+                      <button
+                        onClick={handleMarkAllAsRead}
+                        className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                    <button
+                      onClick={handleClearAll}
+                      className="flex items-center space-x-1 text-sm text-red-600 hover:text-red-700 font-medium transition-colors"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      <span>Clear all</span>
+                    </button>
+                  </>
                 )}
                 <button
                   onClick={onClose}

@@ -4,28 +4,29 @@ import {
   getUnreadCount, 
   markAsRead, 
   markAllAsRead,
-  createTestNotification
+  clearAllNotifications,
+  createTestNotification 
 } from '../controllers/notificationController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// All routes are protected
-router.use(protect);
+router.route('/')
+  .get(protect, getUserNotifications);
 
-// GET /api/notifications - Get user notifications
-router.get('/', getUserNotifications);
+router.route('/unread-count')
+  .get(protect, getUnreadCount);
 
-// GET /api/notifications/unread-count - Get unread count
-router.get('/unread-count', getUnreadCount);
+router.route('/mark-all-read')
+  .put(protect, markAllAsRead);
 
-// POST /api/notifications/test - Create test notification
-router.post('/test', createTestNotification);
+router.route('/clear-all')
+  .delete(protect, clearAllNotifications);
 
-// PUT /api/notifications/:id/read - Mark notification as read
-router.put('/:id/read', markAsRead);
+router.route('/test')
+  .post(protect, createTestNotification);
 
-// PUT /api/notifications/mark-all-read - Mark all as read
-router.put('/mark-all-read', markAllAsRead);
+router.route('/:id/read')
+  .put(protect, markAsRead);
 
 export default router;

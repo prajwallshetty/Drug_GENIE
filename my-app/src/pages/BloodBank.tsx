@@ -81,10 +81,6 @@ const BloodBank: React.FC = () => {
   };
 
   const handleCancelRequest = async (requestId: string) => {
-    if (!window.confirm('Are you sure you want to cancel this blood request?')) {
-      return;
-    }
-
     try {
       await bloodRequestsAPI.cancelRequest(requestId);
       

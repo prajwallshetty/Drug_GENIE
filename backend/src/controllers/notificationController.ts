@@ -51,6 +51,12 @@ const markAllAsRead = expressAsyncHandler(async (req: AuthRequest, res: Response
   res.json({ message: 'All notifications marked as read' });
 });
 
+// Clear all notifications
+const clearAllNotifications = expressAsyncHandler(async (req: AuthRequest, res: Response) => {
+  await Notification.deleteMany({ userId: req.user?._id });
+  res.json({ message: 'All notifications cleared' });
+});
+
 // Create notification (for system use)
 const createNotification = async (
   userId: string,
@@ -78,8 +84,11 @@ const createBloodRequestNotifications = async (
   requesterName: string,
   location: string,
   urgency: string,
-  requestId: string
+  requestId: string,
+  requesterId: string
 ) => {
+  console.log('Starting notification creation process:', { bloodGroup, requesterId });
+  
   // Blood compatibility mapping
   const compatibility: { [key: string]: string[] } = {
     'A+': ['A+', 'A-', 'O+', 'O-'],
@@ -93,10 +102,17 @@ const createBloodRequestNotifications = async (
   };
 
   const compatibleDonorGroups = compatibility[bloodGroup] || [];
+  console.log('Compatible donor groups:', compatibleDonorGroups);
   
-  // Find users with compatible blood groups
+  // Find users with compatible blood groups, excluding the requester
   const compatibleUsers = await User.find({
-    bloodGroup: { $in: compatibleDonorGroups }
+    bloodGroup: { $in: compatibleDonorGroups },
+    _id: { $ne: requesterId }
+  });
+  
+  console.log(`Found ${compatibleUsers.length} compatible users (excluding requester)`);
+  compatibleUsers.forEach(user => {
+    console.log(`- User: ${user.name}, Blood Group: ${user.bloodGroup}, ID: ${user._id}`);
   });
 
   // Create notifications for each compatible user
@@ -113,6 +129,7 @@ const createBloodRequestNotifications = async (
   );
 
   await Promise.all(notifications);
+  console.log(`Successfully created ${notifications.length} notifications`);
   return notifications.length;
 };
 
@@ -121,7 +138,8 @@ const createBloodRequestCancellationNotifications = async (
   bloodGroup: string,
   requesterName: string,
   location: string,
-  requestId: string
+  requestId: string,
+  requesterId: string
 ) => {
   // Blood compatibility mapping
   const compatibility: { [key: string]: string[] } = {
@@ -137,9 +155,10 @@ const createBloodRequestCancellationNotifications = async (
 
   const compatibleDonorGroups = compatibility[bloodGroup] || [];
   
-  // Find users with compatible blood groups
+  // Find users with compatible blood groups, excluding the requester
   const compatibleUsers = await User.find({
-    bloodGroup: { $in: compatibleDonorGroups }
+    bloodGroup: { $in: compatibleDonorGroups },
+    _id: { $ne: requesterId }
   });
 
   // Create cancellation notifications for each compatible user
@@ -177,7 +196,8 @@ export {
   getUserNotifications, 
   getUnreadCount, 
   markAsRead, 
-  markAllAsRead, 
+  markAllAsRead,
+  clearAllNotifications,
   createNotification,
   createBloodRequestNotifications,
   createBloodRequestCancellationNotifications,

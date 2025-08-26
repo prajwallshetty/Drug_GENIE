@@ -40,4 +40,9 @@ export const notificationService = {
   markAllAsRead: async (): Promise<void> => {
     await api.put('/api/notifications/mark-all-read');
   },
+
+  // Clear all notifications
+  clearAllNotifications: async (): Promise<void> => {
+    await api.delete('/api/notifications/clear-all');
+  },
 };
