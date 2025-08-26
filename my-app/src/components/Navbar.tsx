@@ -20,15 +20,16 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, isSidebarOpen }) => {
 
   useEffect(() => {
     loadUnreadCount();
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(loadUnreadCount, 30000);
+    // Reduced polling frequency from 30s to 2 minutes to reduce API calls
+    const interval = setInterval(loadUnreadCount, 120000);
     return () => clearInterval(interval);
   }, []);
 
   const loadUnreadCount = async () => {
     try {
       const count = await notificationService.getUnreadCount();
-      setUnreadCount(count);
+      // Only update state if count actually changed to prevent unnecessary re-renders
+      setUnreadCount(prevCount => prevCount !== count ? count : prevCount);
     } catch (error) {
       // Silently fail - user might not be authenticated
     }
@@ -46,8 +47,10 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, isSidebarOpen }) => {
 
   const handleNotificationClose = () => {
     setShowNotifications(false);
-    // Refresh unread count when dropdown closes
-    loadUnreadCount();
+    // Only refresh count if dropdown was actually open and had unread notifications
+    if (unreadCount > 0) {
+      loadUnreadCount();
+    }
   };
 
   return (
@@ -106,13 +109,11 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, isSidebarOpen }) => {
             >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium"
+                <span
+                  className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium transition-all duration-200"
                 >
                   {unreadCount > 99 ? '99+' : unreadCount}
-                </motion.span>
+                </span>
               )}
             </motion.button>
             

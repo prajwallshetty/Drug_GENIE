@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Check, Droplets, Clock, AlertCircle, Settings } from 'lucide-react';
 import { notificationService, Notification } from '../services/notificationService';
@@ -10,7 +10,7 @@ interface NotificationDropdownProps {
   onClose: () => void;
 }
 
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onClose }) => {
+const NotificationDropdown: React.FC<NotificationDropdownProps> = React.memo(({ isOpen, onClose }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     }
   }, [isOpen]);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     try {
       setLoading(true);
       const data = await notificationService.getNotifications();
@@ -31,9 +31,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const handleMarkAsRead = async (id: string) => {
+  const handleMarkAsRead = useCallback(async (id: string) => {
     try {
       await notificationService.markAsRead(id);
       setNotifications(prev => 
@@ -44,9 +44,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     } catch (error) {
       toast.error('Failed to mark as read');
     }
-  };
+  }, []);
 
-  const handleMarkAllAsRead = async () => {
+  const handleMarkAllAsRead = useCallback(async () => {
     try {
       await notificationService.markAllAsRead();
       setNotifications(prev => 
@@ -56,9 +56,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     } catch (error) {
       toast.error('Failed to mark all as read');
     }
-  };
+  }, []);
 
-  const handleNotificationClick = async (notification: Notification) => {
+  const handleNotificationClick = useCallback(async (notification: Notification) => {
     if (!notification.isRead) {
       await handleMarkAsRead(notification._id);
     }
@@ -67,9 +67,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       navigate(notification.actionUrl);
       onClose();
     }
-  };
+  }, [handleMarkAsRead, navigate, onClose]);
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = useCallback((type: string) => {
     switch (type) {
       case 'blood_request':
         return <Droplets className="h-4 w-4 text-red-500" />;
@@ -80,9 +80,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       default:
         return <Settings className="h-4 w-4 text-blue-500" />;
     }
-  };
+  }, []);
 
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = useCallback((priority: string) => {
     switch (priority) {
       case 'urgent':
         return 'border-l-red-500 bg-red-50';
@@ -93,9 +93,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       default:
         return 'border-l-blue-500 bg-blue-50';
     }
-  };
+  }, []);
 
-  const formatTime = (dateString: string) => {
+  const formatTime = useCallback((dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
@@ -104,7 +104,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
     if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
     if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
     return `${Math.floor(diffInMinutes / 1440)}d ago`;
-  };
+  }, []);
+
+  const hasUnreadNotifications = useMemo(() => 
+    notifications.some(n => !n.isRead), [notifications]
+  );
 
   return (
     <AnimatePresence>
@@ -116,22 +120,22 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
             onClick={onClose}
           />
           
-          {/* Dropdown */}
+          {/* Dropdown - Simplified animation */}
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
             className="absolute right-0 mt-2 w-96 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-96 overflow-hidden"
           >
             {/* Header */}
             <div className="p-4 border-b border-gray-200 flex items-center justify-between">
               <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
               <div className="flex items-center space-x-2">
-                {notifications.some(n => !n.isRead) && (
+                {hasUnreadNotifications && (
                   <button
                     onClick={handleMarkAllAsRead}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
                   >
                     Mark all read
                   </button>
@@ -160,10 +164,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
               ) : (
                 <div className="divide-y divide-gray-100">
                   {notifications.map((notification) => (
-                    <motion.div
+                    <div
                       key={notification._id}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
                       className={`p-4 hover:bg-gray-50 cursor-pointer transition-colors border-l-4 ${
                         !notification.isRead ? getPriorityColor(notification.priority) : 'border-l-gray-300 bg-gray-50'
                       }`}
@@ -212,7 +214,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
                           )}
                         </div>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -222,6 +224,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ isOpen, onC
       )}
     </AnimatePresence>
   );
-};
+});
+
+NotificationDropdown.displayName = 'NotificationDropdown';
 
 export default NotificationDropdown;
