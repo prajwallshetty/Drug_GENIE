@@ -2,6 +2,7 @@ import expressAsyncHandler from 'express-async-handler';
 import BloodRequest from '../models/bloodRequestModel'; 
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/authMiddleware'; 
+import { createBloodRequestNotifications } from './notificationController';
 
 // Get active blood requests
 const getActiveBloodRequests = expressAsyncHandler(async (req: AuthRequest, res: Response) => {
@@ -40,6 +41,19 @@ const createBloodRequest = expressAsyncHandler(async (req: AuthRequest, res: Res
     unitsNeeded,
     status: 'active',
   });
+
+  // Create notifications for compatible donors
+  try {
+    await createBloodRequestNotifications(
+      bloodGroup,
+      req.user?.name || 'Someone',
+      location,
+      urgency,
+      bloodRequest._id.toString()
+    );
+  } catch (error) {
+    console.error('Failed to create notifications:', error);
+  }
 
   // Map response for frontend compatibility
   res.status(201).json({

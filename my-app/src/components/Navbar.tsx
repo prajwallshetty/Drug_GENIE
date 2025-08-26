@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Bell, User, Search, Heart, LogOut, Menu, X } from 'lucide-react';
 import { getCurrentUser, logoutUser } from '../utils/storage';
 import { useNavigate } from 'react-router-dom';
+import { notificationService } from '../services/notificationService';
+import NotificationDropdown from './NotificationDropdown';
 import toast from 'react-hot-toast';
 
 interface NavbarProps {
@@ -13,11 +15,39 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, isSidebarOpen }) => {
   const currentUser = getCurrentUser();
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    loadUnreadCount();
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(loadUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const loadUnreadCount = async () => {
+    try {
+      const count = await notificationService.getUnreadCount();
+      setUnreadCount(count);
+    } catch (error) {
+      // Silently fail - user might not be authenticated
+    }
+  };
 
   const handleLogout = () => {
     logoutUser();
     toast.success('Logged out successfully');
     navigate('/login');
+  };
+
+  const handleNotificationClick = () => {
+    setShowNotifications(!showNotifications);
+  };
+
+  const handleNotificationClose = () => {
+    setShowNotifications(false);
+    // Refresh unread count when dropdown closes
+    loadUnreadCount();
   };
 
   return (
@@ -67,16 +97,30 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar, isSidebarOpen }) => {
         {/* Right side (Notifications + Profile) */}
         <div className="flex items-center space-x-4">
           {/* Notification */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative p-3 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
-          >
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium">
-              3
-            </span>
-          </motion.button>
+          <div className="relative">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleNotificationClick}
+              className="relative p-3 text-gray-500 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+            >
+              <Bell className="h-5 w-5" />
+              {unreadCount > 0 && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-xs text-white flex items-center justify-center font-medium"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </motion.span>
+              )}
+            </motion.button>
+            
+            <NotificationDropdown 
+              isOpen={showNotifications}
+              onClose={handleNotificationClose}
+            />
+          </div>
           
           {/* Profile + Dropdown */}
           <div className="flex items-center space-x-3">

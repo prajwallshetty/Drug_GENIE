@@ -102,3 +102,34 @@ export const bloodRequestsAPI = {
     });
   },
 };
+
+// Axios-like API interface for compatibility
+export const api = {
+  get: async (endpoint: string) => {
+    const data = await apiRequest(endpoint);
+    return { data };
+  },
+  
+  post: async (endpoint: string, body?: any) => {
+    const data = await apiRequest(endpoint, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    return { data };
+  },
+  
+  put: async (endpoint: string, body?: any) => {
+    const data = await apiRequest(endpoint, {
+      method: 'PUT',
+      body: JSON.stringify(body),
+    });
+    return { data };
+  },
+  
+  delete: async (endpoint: string) => {
+    const data = await apiRequest(endpoint, {
+      method: 'DELETE',
+    });
+    return { data };
+  },
+};
