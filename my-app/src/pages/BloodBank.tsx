@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Droplets, MapPin, Phone, Clock, Plus, AlertCircle } from 'lucide-react';
+import { Droplets, MapPin, Phone, Clock, Plus, AlertCircle, X } from 'lucide-react';
 import { BloodRequest } from '../types';
-import { getBloodRequests, saveBloodRequest, getCurrentUser } from '../utils/storage';
-import { v4 as uuidv4 } from 'uuid';
+import { getCurrentUser } from '../utils/storage';
+import { bloodRequestsAPI } from '../services/api';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -32,7 +32,7 @@ const BloodBank: React.FC = () => {
   useEffect(() => {
     const loadBloodRequests = async () => {
       try {
-        const allRequests = await getBloodRequests();
+        const allRequests = await bloodRequestsAPI.getActiveRequests();
         setRequests(allRequests.filter(req => req.status === 'active'));
       } catch (error) {
         toast.error('Failed to load blood requests');
@@ -48,23 +48,18 @@ const BloodBank: React.FC = () => {
       return;
     }
 
-    const request: BloodRequest = {
-      id: uuidv4(),
-      requesterId: currentUser.id,
-      requesterName: currentUser.name,
-      bloodGroup: formData.bloodGroup,
-      urgency: formData.urgency,
-      location: formData.location,
-      contactNumber: formData.contactNumber,
-      hospitalName: formData.hospitalName,
-      unitsNeeded: formData.unitsNeeded,
-      createdAt: new Date(),
-      status: 'active'
-    };
-
     try {
-      await saveBloodRequest(request);
-      const updatedRequests = await getBloodRequests();
+      await bloodRequestsAPI.createRequest({
+        bloodGroup: formData.bloodGroup,
+        urgency: formData.urgency,
+        location: formData.location,
+        contactNumber: formData.contactNumber,
+        hospitalName: formData.hospitalName,
+        unitsNeeded: formData.unitsNeeded,
+      });
+      
+      // Reload requests to show the new one
+      const updatedRequests = await bloodRequestsAPI.getActiveRequests();
       setRequests(updatedRequests.filter(req => req.status === 'active'));
       
       setShowForm(false);
@@ -77,11 +72,31 @@ const BloodBank: React.FC = () => {
         unitsNeeded: 1
       });
       
-      toast.success('Blood request created successfully!');
+      toast.success('Blood request created successfully! Notifications sent to compatible donors.');
     } catch (error: any) {
       const errorMessage = error?.message || 'Failed to create blood request. Please try again.';
       toast.error(errorMessage);
       console.error('Blood request error:', error);
+    }
+  };
+
+  const handleCancelRequest = async (requestId: string) => {
+    if (!window.confirm('Are you sure you want to cancel this blood request?')) {
+      return;
+    }
+
+    try {
+      await bloodRequestsAPI.cancelRequest(requestId);
+      
+      // Reload requests to remove the cancelled one
+      const updatedRequests = await bloodRequestsAPI.getActiveRequests();
+      setRequests(updatedRequests.filter(req => req.status === 'active'));
+      
+      toast.success('Blood request cancelled successfully. Notifications sent to donors.');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to cancel blood request. Please try again.';
+      toast.error(errorMessage);
+      console.error('Cancel request error:', error);
     }
   };
 
@@ -349,6 +364,17 @@ const BloodBank: React.FC = () => {
                   </div>
                   
                   <div className="flex flex-col space-y-2">
+                    {currentUser && request.requesterId === currentUser.id && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleCancelRequest(request.id)}
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm flex items-center space-x-2"
+                      >
+                        <X className="h-4 w-4" />
+                        <span>Cancel Request</span>
+                      </motion.button>
+                    )}
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

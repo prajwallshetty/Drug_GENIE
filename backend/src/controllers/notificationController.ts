@@ -116,6 +116,49 @@ const createBloodRequestNotifications = async (
   return notifications.length;
 };
 
+// Create blood request cancellation notifications for compatible donors
+const createBloodRequestCancellationNotifications = async (
+  bloodGroup: string,
+  requesterName: string,
+  location: string,
+  requestId: string
+) => {
+  // Blood compatibility mapping
+  const compatibility: { [key: string]: string[] } = {
+    'A+': ['A+', 'A-', 'O+', 'O-'],
+    'A-': ['A-', 'O-'],
+    'B+': ['B+', 'B-', 'O+', 'O-'],
+    'B-': ['B-', 'O-'],
+    'AB+': ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'],
+    'AB-': ['A-', 'B-', 'AB-', 'O-'],
+    'O+': ['O+', 'O-'],
+    'O-': ['O-']
+  };
+
+  const compatibleDonorGroups = compatibility[bloodGroup] || [];
+  
+  // Find users with compatible blood groups
+  const compatibleUsers = await User.find({
+    bloodGroup: { $in: compatibleDonorGroups }
+  });
+
+  // Create cancellation notifications for each compatible user
+  const notifications = compatibleUsers.map(user => 
+    createNotification(
+      (user._id as any).toString(),
+      `❌ Blood Request Cancelled - ${bloodGroup}`,
+      `${requesterName}'s blood request for ${bloodGroup} blood in ${location} has been cancelled.`,
+      'blood_request',
+      'medium',
+      '/blood-bank',
+      { bloodGroup, requestId, cancelled: true }
+    )
+  );
+
+  await Promise.all(notifications);
+  return notifications.length;
+};
+
 // Create test notification (for debugging)
 const createTestNotification = expressAsyncHandler(async (req: AuthRequest, res: Response) => {
   const testNotification = await Notification.create({
@@ -137,5 +180,6 @@ export {
   markAllAsRead, 
   createNotification,
   createBloodRequestNotifications,
+  createBloodRequestCancellationNotifications,
   createTestNotification
 };

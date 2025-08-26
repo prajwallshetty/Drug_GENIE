@@ -2,17 +2,17 @@ import { User, Reminder, BloodRequest } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-// Token management
+// Token management - Use sessionStorage for tab isolation
 export const getToken = (): string | null => {
-  return localStorage.getItem('authToken');
+  return sessionStorage.getItem('authToken');
 };
 
 export const setToken = (token: string): void => {
-  localStorage.setItem('authToken', token);
+  sessionStorage.setItem('authToken', token);
 };
 
 export const removeToken = (): void => {
-  localStorage.removeItem('authToken');
+  sessionStorage.removeItem('authToken');
 };
 
 // API request helper
@@ -99,6 +99,12 @@ export const bloodRequestsAPI = {
     return apiRequest('/api/blood-requests', {
       method: 'POST',
       body: JSON.stringify(requestData),
+    });
+  },
+
+  cancelRequest: async (requestId: string): Promise<BloodRequest> => {
+    return apiRequest(`/api/blood-requests/${requestId}/cancel`, {
+      method: 'PUT',
     });
   },
 };
