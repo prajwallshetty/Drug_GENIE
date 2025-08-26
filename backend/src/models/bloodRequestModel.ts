@@ -9,7 +9,7 @@ interface IBloodRequest extends Document {
   contactNumber: string;
   hospitalName: string;
   unitsNeeded: number;
-  status: 'active' | 'fulfilled' | 'expired';
+  status: 'active' | 'fulfilled' | 'expired' | 'cancelled';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,7 +35,7 @@ const bloodRequestSchema = new mongoose.Schema<IBloodRequest, IBloodRequestModel
   unitsNeeded: { type: Number, required: true, min: 1 },
   status: {
     type: String,
-    enum: ['active', 'fulfilled', 'expired'],
+    enum: ['active', 'fulfilled', 'expired', 'cancelled'],
     default: 'active',
   },
 }, { timestamps: true });

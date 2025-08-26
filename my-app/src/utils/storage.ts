@@ -1,13 +1,13 @@
 import { User, Reminder, BloodRequest, ChatMessage } from '../types';
-import { authAPI, remindersAPI, bloodRequestsAPI, getToken, setToken, removeToken } from '../services/api';
+import { authAPI, remindersAPI, bloodRequestsAPI, setToken, removeToken } from '../services/api';
 
-// User Management - Updated to use API
+// User Management - Updated to use API with sessionStorage for tab isolation
 export const saveUser = (user: User): void => {
-  localStorage.setItem('currentUser', JSON.stringify(user));
+  sessionStorage.setItem('currentUser', JSON.stringify(user));
 };
 
 export const getCurrentUser = (): User | null => {
-  const userStr = localStorage.getItem('currentUser');
+  const userStr = sessionStorage.getItem('currentUser');
   return userStr ? JSON.parse(userStr) : null;
 };
 
@@ -49,7 +49,7 @@ export const registerUser = async (userData: {
 
 export const logoutUser = (): void => {
   removeToken();
-  localStorage.removeItem('currentUser');
+  sessionStorage.removeItem('currentUser');
 };
 
 // Reminders Management - Updated to use API

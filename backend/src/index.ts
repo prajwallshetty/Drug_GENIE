@@ -5,6 +5,7 @@ import connectDB from "./config/db";
 import authRoutes from "./routes/authRoutes";
 import reminderRoutes from "./routes/reminderRoutes";
 import bloodRequestRoutes from "./routes/bloodRequestRoutes";
+import notificationRoutes from './routes/notificationRoutes';
 import { notFound, errorHandler } from "./middleware/errorMiddleware";
 
 dotenv.config();
@@ -18,6 +19,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/reminders", reminderRoutes);
 app.use("/api/blood-requests", bloodRequestRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Middleware
 app.use(notFound);
