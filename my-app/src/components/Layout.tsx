@@ -27,7 +27,7 @@ const Layout: React.FC = () => {
         >
           <Outlet />
         </main>
-      </div>
+      </div>                                                                             
     </div>
   );
 };
