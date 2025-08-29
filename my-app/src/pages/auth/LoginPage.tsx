@@ -1,15 +1,25 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, Users, Activity } from 'lucide-react';
-import { loginUser } from '../../utils/storage';
-import toast from 'react-hot-toast';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Heart,
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  ArrowRight,
+  Shield,
+  Users,
+  Activity,
+} from "lucide-react";
+import { loginUser } from "../../utils/storage";
+import toast from "react-hot-toast";
 
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,29 +27,43 @@ const LoginPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       const user = await loginUser(formData.email, formData.password);
-      
+
       if (user) {
         toast.success(`Welcome back, ${user.name}!`);
-        navigate('/');
+        navigate("/");
       } else {
-        toast.error('Invalid credentials. Please check your email and password.');
+        toast.error(
+          "Invalid credentials. Please check your email and password."
+        );
       }
     } catch (error: any) {
-      const errorMessage = error?.message || 'Login failed. Please try again.';
+      const errorMessage = error?.message || "Login failed. Please try again.";
       toast.error(errorMessage);
-      console.error('Login error:', error);
+      console.error("Login error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const features = [
-    { icon: Shield, title: 'Secure & Private', desc: 'Your health data is encrypted and protected' },
-    { icon: Users, title: 'Expert Care', desc: 'AI-powered health assistance 24/7' },
-    { icon: Activity, title: 'Smart Monitoring', desc: 'Track medications and symptoms easily' }
+    {
+      icon: Shield,
+      title: "Secure & Private",
+      desc: "Your health data is encrypted and protected",
+    },
+    {
+      icon: Users,
+      title: "Expert Care",
+      desc: "AI-powered health assistance 24/7",
+    },
+    {
+      icon: Activity,
+      title: "Smart Monitoring",
+      desc: "Track medications and symptoms easily",
+    },
   ];
 
   return (
@@ -59,14 +83,15 @@ const LoginPage: React.FC = () => {
               </div>
               <h1 className="text-3xl font-bold">MediAI</h1>
             </div>
-            
+
             <h2 className="text-4xl font-bold mb-6 leading-tight">
-              Your Personal<br />
+              Your Personal
+              <br />
               <span className="text-cyan-200">Healthcare Assistant</span>
             </h2>
-            
+
             <p className="text-xl text-blue-100 mb-12 leading-relaxed">
-              Advanced AI-powered healthcare management with medicine tracking, 
+              Advanced AI-powered healthcare management with medicine tracking,
               symptom analysis, and personalized health insights.
             </p>
 
@@ -83,7 +108,9 @@ const LoginPage: React.FC = () => {
                     <feature.icon className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-white">{feature.title}</h3>
+                    <h3 className="font-semibold text-white">
+                      {feature.title}
+                    </h3>
                     <p className="text-blue-100 text-sm">{feature.desc}</p>
                   </div>
                 </motion.div>
@@ -91,7 +118,7 @@ const LoginPage: React.FC = () => {
             </div>
           </motion.div>
         </div>
-        
+
         {/* Decorative Elements */}
         <div className="absolute top-20 right-20 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
         <div className="absolute bottom-20 right-32 w-24 h-24 bg-cyan-300/20 rounded-full blur-lg"></div>
@@ -118,8 +145,12 @@ const LoginPage: React.FC = () => {
 
           <div className="bg-white rounded-3xl shadow-2xl p-8 border border-gray-100">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-              <p className="text-gray-600">Sign in to access your health dashboard</p>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                Welcome Back
+              </h2>
+              <p className="text-gray-600">
+                Sign in to access your health dashboard
+              </p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -137,12 +168,14 @@ const LoginPage: React.FC = () => {
                     type="email"
                     required
                     value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
                     className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
                     placeholder="Enter your email"
                   />
                 </div>
-              </motion.div>
+              </motion.div>   
 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -155,10 +188,12 @@ const LoginPage: React.FC = () => {
                 <div className="relative">
                   <Lock className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     required
                     value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, password: e.target.value })
+                    }
                     className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
                     placeholder="Enter your password"
                   />
@@ -167,20 +202,29 @@ const LoginPage: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </motion.div>
 
               <div className="flex items-center justify-between">
                 <label className="flex items-center">
-                  <input 
-                    type="checkbox" 
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4" 
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
                   />
-                  <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                  <span className="ml-2 text-sm text-gray-600">
+                    Remember me
+                  </span>
                 </label>
-                <Link to="#" className="text-sm text-blue-600 hover:text-blue-500 font-medium">
+                <Link
+                  to="#"
+                  className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+                >
                   Forgot password?
                 </Link>
               </div>
@@ -205,8 +249,11 @@ const LoginPage: React.FC = () => {
 
             <div className="mt-8 text-center">
               <p className="text-gray-600">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-blue-600 hover:text-blue-500 font-semibold">
+                Don't have an account?{" "}
+                <Link
+                  to="/signup"
+                  className="text-blue-600 hover:text-blue-500 font-semibold"
+                >
                   Create Account
                 </Link>
               </p>
@@ -220,7 +267,9 @@ const LoginPage: React.FC = () => {
             transition={{ delay: 0.5 }}
             className="mt-6 p-4 bg-blue-50 rounded-xl border border-blue-200"
           >
-            <p className="text-sm text-blue-800 font-medium mb-2">Demo Credentials:</p>
+            <p className="text-sm text-blue-800 font-medium mb-2">
+              Demo Credentials:
+            </p>
             <p className="text-xs text-blue-700">
               Create an account first, then use those credentials to login
             </p>
