@@ -139,7 +139,7 @@ const LoginPage: React.FC = () => {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-gray-900 placeholder-gray-500"
-                    placeholder="Enter your email"
+                    placeholder="Enter your email"            
                   />
                 </div>
               </motion.div>
