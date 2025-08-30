@@ -178,11 +178,11 @@ const LoginPage: React.FC = () => {
               </motion.div>   
                                                                                                    
               <motion.div                               
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 20 }} 
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                <label className="block text-sm font-semibold text-gray-700 mb-2">        
                   Password
                 </label>
                 <div className="relative">
