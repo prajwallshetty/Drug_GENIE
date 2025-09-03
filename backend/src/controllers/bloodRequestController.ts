@@ -44,25 +44,13 @@ const createBloodRequest = expressAsyncHandler(async (req: AuthRequest, res: Res
 
   // Create notifications for compatible donors
   try {
-    console.log('Creating notifications for blood request:', {
-      bloodGroup,
-      requesterName: req.user?.name,
-      location,
-      urgency,
-      requestId: (bloodRequest._id as any).toString(),
-      requesterId: (req.user?._id as any).toString()
-    });
-    
     const notificationCount = await createBloodRequestNotifications(
       bloodGroup,
-      req.user?.name || 'Someone',
       location,
       urgency,
       (bloodRequest._id as any).toString(),
       (req.user?._id as any).toString()
     );
-    
-    console.log(`Created ${notificationCount} notifications for blood request`);
   } catch (error) {
     console.error('Failed to create notifications:', error);
   }
