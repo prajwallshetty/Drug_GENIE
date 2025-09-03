@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Plus, X, AlertTriangle, CheckCircle, AlertCircle } from 'lucide-react';
-import { checkDrugInteractions, getSeverityColor } from '../utils/drugInteractions';
+import { Shield, Plus, X, AlertTriangle, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { checkDrugInteractions, getSeverityColor, DrugInteraction } from '../utils/drugInteractions';
 import toast from 'react-hot-toast';
 
 const DrugChecker: React.FC = () => {
   const [medications, setMedications] = useState<string[]>([]);
   const [currentMed, setCurrentMed] = useState('');
-  const [interactions, setInteractions] = useState<any[]>([]);
+  const [interactions, setInteractions] = useState<DrugInteraction[]>([]);
   const [hasChecked, setHasChecked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const addMedication = () => {
     if (currentMed.trim() && !medications.includes(currentMed.trim())) {
@@ -23,22 +24,30 @@ const DrugChecker: React.FC = () => {
     setHasChecked(false);
   };
 
-  const checkInteractions = () => {
+  const checkInteractions = async () => {
     if (medications.length < 2) {
       toast.error('Please add at least 2 medications to check for interactions');
       return;
     }
 
-    const foundInteractions = checkDrugInteractions(medications);
-    setInteractions(foundInteractions);
-    setHasChecked(true);
+    setIsLoading(true);
+    try {
+      const foundInteractions = await checkDrugInteractions(medications);
+      setInteractions(foundInteractions);
+      setHasChecked(true);
 
-    if (foundInteractions.length === 0) {
-      toast.success('No known interactions found between these medications');
-    } else {
-      toast(`Found ${foundInteractions.length} potential interaction(s)`, {
-        icon: '⚠️',
-      });
+      if (foundInteractions.length === 0) {
+        toast.success('No known interactions found between these medications');
+      } else {
+        toast(`Found ${foundInteractions.length} potential interaction(s)`, {
+          icon: '⚠️',
+        });
+      }
+    } catch (error) {
+      console.error('Error checking interactions:', error);
+      toast.error('Failed to check interactions. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -121,10 +130,17 @@ const DrugChecker: React.FC = () => {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={checkInteractions}
-              disabled={medications.length < 2}
-              className="w-full py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={medications.length < 2 || isLoading}
+              className="w-full py-3 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
             >
-              Check for Interactions
+              {isLoading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  <span>Checking Interactions...</span>
+                </>
+              ) : (
+                <span>Check for Interactions</span>
+              )}
             </motion.button>
           </div>
         </motion.div>
@@ -137,7 +153,13 @@ const DrugChecker: React.FC = () => {
         >
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Interaction Results</h2>
           
-          {!hasChecked ? (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <Loader2 className="h-16 w-16 text-blue-500 mx-auto mb-4 animate-spin" />
+              <p className="text-gray-600 font-medium">Checking for drug interactions...</p>
+              <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
+            </div>
+          ) : !hasChecked ? (
             <div className="text-center py-12">
               <Shield className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Add medications and click "Check for Interactions" to see results</p>
@@ -176,11 +198,54 @@ const DrugChecker: React.FC = () => {
                           {interaction.severity.toUpperCase()}
                         </span>
                       </div>
-                      <p className="text-gray-700 mb-2">{interaction.description}</p>
+                      {/* Simple Summary */}
+                      {interaction.simpleSummary && (
+                        <div className="bg-gray-50 p-3 rounded-lg mb-3">
+                          <p className="text-lg font-medium text-gray-900">
+                            💡 {interaction.simpleSummary}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {/* Side Effects */}
+                      {interaction.sideEffects && interaction.sideEffects.length > 0 && (
+                        <div className="bg-red-50 p-3 rounded-lg mb-3">
+                          <p className="text-sm font-medium text-red-800 mb-2">⚠️ Possible Side Effects:</p>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                            {interaction.sideEffects.map((effect, idx) => (
+                              <div key={idx} className="flex items-center space-x-1">
+                                <span className="text-red-600">•</span>
+                                <span className="text-sm text-red-700">{effect}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* What to Avoid */}
+                      {interaction.whatToAvoid && interaction.whatToAvoid.length > 0 && (
+                        <div className="bg-orange-50 p-3 rounded-lg mb-3">
+                          <p className="text-sm font-medium text-orange-800 mb-2">🚫 What NOT to Consume/Do:</p>
+                          <div className="space-y-1">
+                            {interaction.whatToAvoid.map((avoid, idx) => (
+                              <div key={idx} className="flex items-center space-x-1">
+                                <span className="text-orange-600">✗</span>
+                                <span className="text-sm text-orange-700">{avoid}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
                       <div className="bg-blue-50 p-3 rounded-lg">
                         <p className="text-sm text-blue-800">
-                          <strong>Recommendation:</strong> {interaction.recommendation}
+                          <strong>Doctor's Advice:</strong> {interaction.recommendation}
                         </p>
+                        {interaction.source && (
+                          <p className="text-xs text-blue-600 mt-1">
+                            Source: {interaction.source.toUpperCase()}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>

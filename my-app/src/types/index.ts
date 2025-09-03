@@ -46,7 +46,7 @@ export interface BloodRequest {
   hospitalName: string;
   unitsNeeded: number;
   createdAt: Date;
-  status: 'active' | 'fulfilled' | 'expired';
+  status: 'active' | 'fulfilled' | 'expired' | 'cancelled';
 }
 
 export interface Symptom {

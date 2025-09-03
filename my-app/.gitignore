@@ -30,3 +30,11 @@ dist-ssr/
 
 # Vite cache
 .vite/
+# Ignore node_modules entirely
+node_modules/
+
+# Ignore specific metadata.json
+**/metadata.json
+**/_metadata.json
+# Ignore database connection attempts
+database connection attempt-1 

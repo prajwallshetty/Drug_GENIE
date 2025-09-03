@@ -1,16 +1,44 @@
-import mongoose from 'mongoose';
+import mongoose, { Document, Model } from 'mongoose';
 
-const bloodRequestSchema = new mongoose.Schema({
-  user: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'User' },
+interface IBloodRequest extends Document {
+  requesterId: mongoose.Schema.Types.ObjectId;
+  requesterName: string;
+  bloodGroup: string;
+  urgency: 'low' | 'medium' | 'high' | 'critical';
+  location: string;
+  contactNumber: string;
+  hospitalName: string;
+  unitsNeeded: number;
+  status: 'active' | 'fulfilled' | 'expired' | 'cancelled';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface IBloodRequestModel extends Model<IBloodRequest> {}
+
+const bloodRequestSchema = new mongoose.Schema<IBloodRequest, IBloodRequestModel>({
+  requesterId: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    ref: 'User',
+  },
   requesterName: { type: String, required: true },
   bloodGroup: { type: String, required: true },
-  unitsNeeded: { type: Number, required: true },
-  urgency: { type: String, enum: ['low', 'medium', 'high', 'critical'], required: true },
-  hospitalName: { type: String, required: true },
+  urgency: {
+    type: String,
+    enum: ['low', 'medium', 'high', 'critical'],
+    required: true,
+  },
   location: { type: String, required: true },
   contactNumber: { type: String, required: true },
-  status: { type: String, enum: ['active', 'fulfilled', 'expired'], default: 'active' },
+  hospitalName: { type: String, required: true },
+  unitsNeeded: { type: Number, required: true, min: 1 },
+  status: {
+    type: String,
+    enum: ['active', 'fulfilled', 'expired', 'cancelled'],
+    default: 'active',
+  },
 }, { timestamps: true });
 
-const BloodRequest = mongoose.model('BloodRequest', bloodRequestSchema);
+const BloodRequest = mongoose.model<IBloodRequest, IBloodRequestModel>('BloodRequest', bloodRequestSchema);
 export default BloodRequest;

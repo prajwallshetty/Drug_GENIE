@@ -25,12 +25,19 @@ const Reminders: React.FC = () => {
 
   useEffect(() => {
     if (currentUser) {
-      const userReminders = getUserReminders(currentUser.id);
-      setReminders(userReminders);
+      const loadReminders = async () => {
+        try {
+          const userReminders = await getUserReminders(currentUser.id);
+          setReminders(userReminders);
+        } catch (error) {
+          toast.error('Failed to load reminders');
+        }
+      };
+      loadReminders();
     }
   }, [currentUser]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
 
@@ -47,16 +54,22 @@ const Reminders: React.FC = () => {
       notes: formData.notes
     };
 
-    saveReminder(reminder);
-    
-    const updatedReminders = getUserReminders(currentUser.id);
-    setReminders(updatedReminders);
-    
-    setShowForm(false);
-    setEditingReminder(null);
-    resetForm();
-    
-    toast.success(editingReminder ? 'Reminder updated successfully' : 'Reminder created successfully');
+    try {
+      await saveReminder(reminder);
+      
+      const updatedReminders = await getUserReminders(currentUser.id);
+      setReminders(updatedReminders);
+      
+      setShowForm(false);
+      setEditingReminder(null);
+      resetForm();
+      
+      toast.success(editingReminder ? 'Reminder updated successfully' : 'Reminder created successfully');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to save reminder. Please try again.';
+      toast.error(errorMessage);
+      console.error('Save reminder error:', error);
+    }
   };
 
   const handleEdit = (reminder: Reminder) => {
@@ -73,12 +86,18 @@ const Reminders: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this reminder?')) {
-      deleteReminder(id);
-      const updatedReminders = getUserReminders(currentUser!.id);
-      setReminders(updatedReminders);
-      toast.success('Reminder deleted successfully');
+      try {
+        await deleteReminder(id);
+        const updatedReminders = await getUserReminders(currentUser!.id);
+        setReminders(updatedReminders);
+        toast.success('Reminder deleted successfully');
+      } catch (error: any) {
+        const errorMessage = error?.message || 'Failed to delete reminder. Please try again.';
+        toast.error(errorMessage);
+        console.error('Delete reminder error:', error);
+      }
     }
   };
 
