@@ -186,7 +186,7 @@ const LoginPage: React.FC = () => {
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
+                  <Lock className="absolute left-4 top-4 h-5 w-5 text-gray-400" />         
                   <input
                     type={showPassword ? "text" : "password"}
                     required
