@@ -38,7 +38,7 @@ const registerUser = expressAsyncHandler(async (req: Request, res: Response) => 
         gender: user.gender,
         createdAt: user.createdAt,
       },
-      token: generateToken(user._id.toString()),
+      token: generateToken((user._id as any).toString()),
     });
   } else {
     res.status(400);
@@ -64,7 +64,7 @@ const loginUser = expressAsyncHandler(async (req: Request, res: Response) => {
         gender: user.gender,
         createdAt: user.createdAt,
       },
-      token: generateToken(user._id.toString()),
+      token: generateToken((user._id as any).toString()),
     });
   } else {
     res.status(401);
