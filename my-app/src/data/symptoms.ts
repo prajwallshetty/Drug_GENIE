@@ -66,3 +66,5 @@ export const symptoms: Symptom[] = [
     recommendations: ['Rest and avoid solid foods temporarily', 'Stay hydrated', 'Apply heat pad to abdomen', 'Avoid dairy and fatty foods', 'Seek medical attention if severe or persistent']
   }
 ];
+
+
