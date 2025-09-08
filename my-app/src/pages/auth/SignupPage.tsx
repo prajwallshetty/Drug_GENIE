@@ -23,14 +23,41 @@ const SignupPage: React.FC = () => {
   });
   const navigate = useNavigate();
 
-  // Component mount - ensure clean start
+  // Smart initialization - preserve data when returning from legal pages
   useEffect(() => {
-    // Clear all browser storage completely
-    try {
+    const savedFormData = sessionStorage.getItem('signupFormData');
+    const savedStep = sessionStorage.getItem('signupCurrentStep');
+    const returnToStep2 = sessionStorage.getItem('returnToStep2');
+    
+    // If returning from legal pages, restore data
+    if (returnToStep2 === 'true' || savedFormData) {
+      console.log('🔄 RESTORING DATA FROM LEGAL PAGE NAVIGATION');
+      
+      if (savedFormData) {
+        try {
+          const parsedData = JSON.parse(savedFormData);
+          setFormData(parsedData);
+          
+          if (parsedData.email || parsedData.password) {
+            setCurrentStep(2);
+          }
+        } catch (error) {
+          console.error('Error parsing saved data:', error);
+        }
+      }
+      
+      if (returnToStep2 === 'true') {
+        setCurrentStep(2);
+        sessionStorage.removeItem('returnToStep2');
+      } else if (savedStep && parseInt(savedStep) >= 1 && parseInt(savedStep) <= 2) {
+        setCurrentStep(parseInt(savedStep));
+      }
+    } else {
+      // New user - clear everything and start fresh
+      console.log('🧹 NEW USER - STARTING FRESH');
       sessionStorage.clear();
       localStorage.clear();
       
-      // Force empty form state
       setFormData({
         name: '',
         age: '',
@@ -39,29 +66,21 @@ const SignupPage: React.FC = () => {
         email: '',
         password: '',
       });
-      
       setCurrentStep(1);
-      
-      // Also clear any potential browser form autocomplete cache
-      const forms = document.querySelectorAll('form');
-      forms.forEach(form => form.reset());
-      
-    } catch (error) {
-      console.error('Error clearing storage:', error);
     }
   }, []);
 
-  // Disable form data saving for new users
-  // useEffect(() => {
-  //   if (formData.name || formData.age || formData.email || formData.password) {
-  //     sessionStorage.setItem('signupFormData', JSON.stringify(formData));
-  //   }
-  // }, [formData]);
+  // Save form data when user enters information
+  useEffect(() => {
+    if (formData.name || formData.age || formData.email || formData.password) {
+      sessionStorage.setItem('signupFormData', JSON.stringify(formData));
+    }
+  }, [formData]);
 
-  // Disable step saving for new users
-  // useEffect(() => {
-  //   sessionStorage.setItem('signupCurrentStep', currentStep.toString());
-  // }, [currentStep]);
+  // Save current step
+  useEffect(() => {
+    sessionStorage.setItem('signupCurrentStep', currentStep.toString());
+  }, [currentStep]);
 
   // Clear saved data on successful registration
   const clearSavedData = () => {
