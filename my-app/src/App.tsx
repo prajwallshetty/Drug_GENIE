@@ -11,6 +11,8 @@ import MedicineLibrary from './pages/MedicineLibrary';
 import Reminders from './pages/Reminders';
 import BloodBank from './pages/BloodBank';
 import SymptomChecker from './pages/SymptomChecker';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
 import { getCurrentUser } from './utils/storage';
 import { getToken } from './services/api';
 
@@ -44,6 +46,10 @@ function App() {
               <SignupPage />
             </PublicRoute>
           } />
+          
+          {/* Legal Pages - Accessible to everyone */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-of-service" element={<TermsOfService />} />
           
           {/* Protected Routes */}
           <Route path="/" element={

@@ -258,6 +258,30 @@ const LoginPage: React.FC = () => {
                 </Link>
               </p>
             </div>
+
+            {/* Legal Links */}
+            <div className="mt-6 text-center">
+              <p className="text-xs text-gray-500">
+                By signing in, you agree to our{" "}
+                <a
+                  href="/terms-of-service"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-500 underline"
+                >
+                  Terms of Service
+                </a>
+                {" "}and{" "}
+                <a
+                  href="/privacy-policy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-500 underline"
+                >
+                  Privacy Policy
+                </a>
+              </p>
+            </div>
           </div>
 
           {/* Demo Credentials */}

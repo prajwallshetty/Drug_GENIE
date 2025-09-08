@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
+import Footer from './Footer';
 
 const Layout: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -11,11 +12,11 @@ const Layout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Navbar */}
       <Navbar onToggleSidebar={handleToggleSidebar} isSidebarOpen={isSidebarOpen} />
 
-      <div className="flex pt-20">
+      <div className="flex pt-20 flex-1">
         {/* Sidebar */}
         <Sidebar isSidebarOpen={isSidebarOpen} />
 
@@ -27,7 +28,10 @@ const Layout: React.FC = () => {
         >
           <Outlet />
         </main>
-      </div>                                                                             
+      </div>
+      
+      {/* Footer */}
+      <Footer />                                                                             
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart, Eye, EyeOff, Mail, Lock, User, Calendar, Droplets, ArrowRight, CheckCircle } from 'lucide-react';
@@ -21,6 +21,46 @@ const SignupPage: React.FC = () => {
   });
   const navigate = useNavigate();
 
+  // Always start fresh for new users - no data persistence
+  useEffect(() => {
+    // Aggressively clear ALL storage
+    sessionStorage.clear();
+    localStorage.clear();
+    
+    // Force reset form data
+    const emptyData = {
+      name: '',
+      age: '',
+      bloodGroup: '',
+      gender: '',
+      email: '',
+      password: '',
+    };
+    
+    setFormData(emptyData);
+    setCurrentStep(1);
+    
+    console.log('🧹 FORCE CLEARED ALL DATA - STARTING FRESH');
+  }, []);
+
+  // Disable form data saving for new users
+  // useEffect(() => {
+  //   if (formData.name || formData.age || formData.email || formData.password) {
+  //     sessionStorage.setItem('signupFormData', JSON.stringify(formData));
+  //   }
+  // }, [formData]);
+
+  // Disable step saving for new users
+  // useEffect(() => {
+  //   sessionStorage.setItem('signupCurrentStep', currentStep.toString());
+  // }, [currentStep]);
+
+  // Clear saved data on successful registration
+  const clearSavedData = () => {
+    sessionStorage.removeItem('signupFormData');
+    sessionStorage.removeItem('signupCurrentStep');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -38,6 +78,7 @@ const SignupPage: React.FC = () => {
       const newUser = await registerUser(userData);
       
       if (newUser) {
+        clearSavedData(); // Clear saved form data on successful registration
         toast.success(`Welcome to MediAI, ${newUser.name}!`);
         navigate('/');
       } else {
@@ -319,11 +360,31 @@ const SignupPage: React.FC = () => {
                     />
                     <p className="text-sm text-gray-600">
                       I agree to the{' '}
-                      <Link to="#" className="text-cyan-600 hover:text-cyan-500 font-medium">
+                      <Link
+                        to="/terms-of-service"
+                        onClick={() => {
+                          // Force save current form data and step 2 before navigating
+                          sessionStorage.setItem('signupFormData', JSON.stringify(formData));
+                          sessionStorage.setItem('signupCurrentStep', '2');
+                          sessionStorage.setItem('returnToStep2', 'true');
+                          console.log('Saved form data before navigation:', formData);
+                        }}
+                        className="text-cyan-600 hover:text-cyan-500 font-medium underline"
+                      >
                         Terms of Service
                       </Link>{' '}
                       and{' '}
-                      <Link to="#" className="text-cyan-600 hover:text-cyan-500 font-medium">
+                      <Link
+                        to="/privacy-policy"
+                        onClick={() => {
+                          // Force save current form data and step 2 before navigating
+                          sessionStorage.setItem('signupFormData', JSON.stringify(formData));
+                          sessionStorage.setItem('signupCurrentStep', '2');
+                          sessionStorage.setItem('returnToStep2', 'true');
+                          console.log('Saved form data before navigation:', formData);
+                        }}
+                        className="text-cyan-600 hover:text-cyan-500 font-medium underline"
+                      >
                         Privacy Policy
                       </Link>
                     </p>
