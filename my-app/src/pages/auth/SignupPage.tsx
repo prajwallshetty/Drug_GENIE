@@ -11,6 +11,8 @@ const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Initialize with completely empty form - no persistence
   const [formData, setFormData] = useState({
     name: '',
     age: '',
@@ -21,26 +23,32 @@ const SignupPage: React.FC = () => {
   });
   const navigate = useNavigate();
 
-  // Always start fresh for new users - no data persistence
+  // Component mount - ensure clean start
   useEffect(() => {
-    // Aggressively clear ALL storage
-    sessionStorage.clear();
-    localStorage.clear();
-    
-    // Force reset form data
-    const emptyData = {
-      name: '',
-      age: '',
-      bloodGroup: '',
-      gender: '',
-      email: '',
-      password: '',
-    };
-    
-    setFormData(emptyData);
-    setCurrentStep(1);
-    
-    console.log('🧹 FORCE CLEARED ALL DATA - STARTING FRESH');
+    // Clear all browser storage completely
+    try {
+      sessionStorage.clear();
+      localStorage.clear();
+      
+      // Force empty form state
+      setFormData({
+        name: '',
+        age: '',
+        bloodGroup: '',
+        gender: '',
+        email: '',
+        password: '',
+      });
+      
+      setCurrentStep(1);
+      
+      // Also clear any potential browser form autocomplete cache
+      const forms = document.querySelectorAll('form');
+      forms.forEach(form => form.reset());
+      
+    } catch (error) {
+      console.error('Error clearing storage:', error);
+    }
   }, []);
 
   // Disable form data saving for new users
@@ -317,11 +325,15 @@ const SignupPage: React.FC = () => {
                       <Mail className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                       <input
                         type="email"
-                        required
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
-                        placeholder="Enter your email"
+                        className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+                        placeholder="Enter your email address"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck="false"
+                        required
                       />
                     </div>
                   </div>
@@ -333,13 +345,17 @@ const SignupPage: React.FC = () => {
                     <div className="relative">
                       <Lock className="absolute left-4 top-4 h-5 w-5 text-gray-400" />
                       <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        minLength={6}
+                        type="password"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-all"
+                        className="w-full pl-12 pr-12 py-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
                         placeholder="Create a strong password"
+                        autoComplete="new-password"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck="false"
+                        minLength={6}
+                        required
                       />
                       <button
                         type="button"
