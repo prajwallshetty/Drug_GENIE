@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Clock, Plus, Edit, Trash2, Bell, Calendar } from 'lucide-react';
 import { Reminder } from '../types';
 import { getUserReminders, saveReminder, deleteReminder, getCurrentUser } from '../utils/storage';
+import { Skeleton } from '../components/ui/skeleton';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
@@ -11,6 +12,7 @@ const Reminders: React.FC = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     medicineName: '',
     dosage: '',
@@ -27,13 +29,18 @@ const Reminders: React.FC = () => {
     if (currentUser) {
       const loadReminders = async () => {
         try {
+          setIsLoading(true);
           const userReminders = await getUserReminders(currentUser.id);
           setReminders(userReminders);
         } catch (error) {
           toast.error('Failed to load reminders');
+        } finally {
+          setIsLoading(false);
         }
       };
       loadReminders();
+    } else {
+      setIsLoading(false);
     }
   }, [currentUser]);
 
@@ -345,7 +352,33 @@ const Reminders: React.FC = () => {
           <h2 className="text-xl font-semibold text-gray-900">Your Reminders ({reminders.length})</h2>
         </div>
         
-        {reminders.length === 0 ? (
+        {isLoading ? (
+          <div className="divide-y divide-gray-200">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Skeleton className="h-6 w-32" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                    <Skeleton className="h-4 w-48" />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                    <Skeleton className="h-8 w-8 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : reminders.length === 0 ? (
           <div className="p-12 text-center">
             <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Reminders Set</h3>

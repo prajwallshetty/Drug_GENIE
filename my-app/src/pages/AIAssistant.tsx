@@ -1,21 +1,31 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Bot, User, Trash2 } from 'lucide-react';
+import { Skeleton } from '../components/ui/skeleton';
+import toast from 'react-hot-toast';
 import { ChatMessage } from '../types';
 import { getChatMessages, saveChatMessage, clearChatMessages } from '../utils/storage';
 import { getAIResponse } from '../utils/aiResponses';
 import { v4 as uuidv4 } from 'uuid';
-import toast from 'react-hot-toast';
 
 const AIAssistant: React.FC = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const savedMessages = getChatMessages();
-    setMessages(savedMessages);
+    const loadMessages = async () => {
+      setIsLoading(true);
+      // Simulate loading time for chat history
+      setTimeout(() => {
+        const savedMessages = getChatMessages();
+        setMessages(savedMessages);
+        setIsLoading(false);
+      }, 800);
+    };
+    loadMessages();
   }, []);
 
   useEffect(() => {
@@ -91,7 +101,21 @@ const AIAssistant: React.FC = () => {
       {/* Chat Messages */}
       <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col">
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.length === 0 ? (
+          {isLoading ? (
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`flex items-start space-x-3 max-w-3xl ${i % 2 === 0 ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                    <Skeleton className="h-8 w-8 rounded-full" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-16 w-64 rounded-lg" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : messages.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
