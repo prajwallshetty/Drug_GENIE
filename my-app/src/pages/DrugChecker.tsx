@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Plus, X, AlertTriangle, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { checkDrugInteractions, getSeverityColor, DrugInteraction } from '../utils/drugInteractions';
+import { Shield, Plus, X, AlertTriangle, CheckCircle, AlertCircle, Loader2, Search } from 'lucide-react';
+import { checkDrugInteractions, getSeverityColor, DrugInteraction, getMedicineSuggestions } from '../utils/drugInteractions';
 import toast from 'react-hot-toast';
 
 const DrugChecker: React.FC = () => {
@@ -10,13 +10,74 @@ const DrugChecker: React.FC = () => {
   const [interactions, setInteractions] = useState<DrugInteraction[]>([]);
   const [hasChecked, setHasChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+
+  // Handle input changes and show suggestions
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setCurrentMed(value);
+    
+    if (value.length >= 2) {
+      const newSuggestions = getMedicineSuggestions(value);
+      setSuggestions(newSuggestions);
+      setShowSuggestions(newSuggestions.length > 0);
+    } else {
+      setSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  // Handle suggestion selection
+  const selectSuggestion = (suggestion: string) => {
+    setCurrentMed(suggestion);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    inputRef.current?.focus();
+  };
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const addMedication = () => {
-    if (currentMed.trim() && !medications.includes(currentMed.trim())) {
-      setMedications([...medications, currentMed.trim()]);
-      setCurrentMed('');
-      setHasChecked(false);
+    const trimmedMed = currentMed.trim();
+    
+    if (!trimmedMed) {
+      toast.error('Please enter a medicine name');
+      return;
     }
+    
+    if (medications.includes(trimmedMed)) {
+      toast.error('This medication is already in the list');
+      return;
+    }
+    
+    // Allow any reasonable input - validation will happen during interaction checking
+    // This ensures we don't block potentially valid drug names
+    if (trimmedMed.length < 2) {
+      toast.error('Medicine name must be at least 2 characters long');
+      return;
+    }
+    
+    // Only add if it's a valid medicine name
+    setMedications([...medications, trimmedMed]);
+    setCurrentMed('');
+    setHasChecked(false);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    toast.success(`${trimmedMed} added successfully`);
   };
 
   const removeMedication = (index: number) => {
@@ -87,23 +148,51 @@ const DrugChecker: React.FC = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Medications</h2>
           
           <div className="space-y-4">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={currentMed}
-                onChange={(e) => setCurrentMed(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Enter medication name (e.g., Aspirin, Warfarin)"
-                className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={addMedication}
-                className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
-              >
-                <Plus className="h-5 w-5" />
-              </motion.button>
+            <div className="relative">
+              <div className="flex space-x-2">
+                <div className="flex-1 relative">
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    value={currentMed}
+                    onChange={handleInputChange}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Start typing medicine name (e.g., Asp... for Aspirin)"
+                    className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  />
+                  <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                </div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={addMedication}
+                  className="px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  <Plus className="h-5 w-5" />
+                </motion.button>
+              </div>
+              
+              {/* Autocomplete Suggestions */}
+              {showSuggestions && suggestions.length > 0 && (
+                <motion.div
+                  ref={suggestionsRef}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+                >
+                  {suggestions.map((suggestion, index) => (
+                    <motion.div
+                      key={index}
+                      whileHover={{ backgroundColor: '#f3f4f6' }}
+                      onClick={() => selectSuggestion(suggestion)}
+                      className="px-4 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 flex items-center space-x-2"
+                    >
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-gray-900 font-medium">{suggestion}</span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
             </div>
 
             {/* Medication List */}
