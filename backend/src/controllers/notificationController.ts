@@ -81,14 +81,11 @@ const createNotification = async (
 // Create blood request notifications for compatible donors
 const createBloodRequestNotifications = async (
   bloodGroup: string,
-  requesterName: string,
   location: string,
   urgency: string,
   requestId: string,
   requesterId: string
 ) => {
-  console.log('Starting notification creation process:', { bloodGroup, requesterId });
-  
   // Blood compatibility mapping
   const compatibility: { [key: string]: string[] } = {
     'A+': ['A+', 'A-', 'O+', 'O-'],
@@ -102,34 +99,30 @@ const createBloodRequestNotifications = async (
   };
 
   const compatibleDonorGroups = compatibility[bloodGroup] || [];
-  console.log('Compatible donor groups:', compatibleDonorGroups);
   
   // Find users with compatible blood groups, excluding the requester
   const compatibleUsers = await User.find({
     bloodGroup: { $in: compatibleDonorGroups },
     _id: { $ne: requesterId }
   });
-  
-  console.log(`Found ${compatibleUsers.length} compatible users (excluding requester)`);
-  compatibleUsers.forEach(user => {
-    console.log(`- User: ${user.name}, Blood Group: ${user.bloodGroup}, ID: ${user._id}`);
-  });
 
   // Create notifications for each compatible user
-  const notifications = compatibleUsers.map(user => 
-    createNotification(
-      (user._id as any).toString(),
-      `🩸 Blood Donation Request - ${bloodGroup}`,
-      `${requesterName} needs ${bloodGroup} blood in ${location}. You can help save a life!`,
-      'blood_request',
-      urgency as any,
-      '/blood-bank',
-      { bloodGroup, requestId }
-    )
-  );
+  const notifications = compatibleUsers.map(async (user) => {
+    return await Notification.create({
+      userId: user._id,
+      type: 'blood_request',
+      title: `Urgent Blood Donation Request - ${bloodGroup}`,
+      message: `A ${bloodGroup} blood donation is urgently needed in ${location}. Your blood type is compatible. Please consider donating.`,
+      data: {
+        requestId,
+        bloodGroup,
+        location,
+        urgency
+      }
+    });
+  });
 
   await Promise.all(notifications);
-  console.log(`Successfully created ${notifications.length} notifications`);
   return notifications.length;
 };
 
