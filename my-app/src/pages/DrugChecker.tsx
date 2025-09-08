@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Plus, X, AlertTriangle, CheckCircle, AlertCircle, Loader2, Search } from 'lucide-react';
 import { checkDrugInteractions, getSeverityColor, DrugInteraction, getMedicineSuggestions } from '../utils/drugInteractions';
+import { Skeleton } from '../components/ui/skeleton';
 import toast from 'react-hot-toast';
 
 const DrugChecker: React.FC = () => {
@@ -243,10 +244,29 @@ const DrugChecker: React.FC = () => {
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Interaction Results</h2>
           
           {isLoading ? (
-            <div className="text-center py-12">
-              <Loader2 className="h-16 w-16 text-blue-500 mx-auto mb-4 animate-spin" />
-              <p className="text-gray-600 font-medium">Checking for drug interactions...</p>
-              <p className="text-gray-500 text-sm mt-2">This may take a few moments</p>
+            <div className="p-6 space-y-4">
+              {/* Interaction Cards Skeleton */}
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="border border-gray-200 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Skeleton className="h-5 w-5 rounded" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-5 w-[200px]" />
+                      <Skeleton className="h-4 w-[80px]" />
+                    </div>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <Skeleton className="h-4 w-full mb-2" />
+                    <Skeleton className="h-4 w-[70%]" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-full" />
+                    <Skeleton className="h-3 w-[60%]" />
+                    <Skeleton className="h-3 w-[80%]" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : !hasChecked ? (
             <div className="text-center py-12">

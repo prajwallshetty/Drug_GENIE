@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Search, BookOpen, AlertTriangle, Info, ExternalLink, Loader2, Pill } from 'lucide-react';
 import { searchMedicines, getMedicineByName, MedicineSearchResult, MedicineData } from '../services/medicineApi';
+import { Skeleton } from '../components/ui/skeleton';
 import toast from 'react-hot-toast';
 
 const MedicineLibrary: React.FC = () => {
@@ -153,9 +154,30 @@ const MedicineLibrary: React.FC = () => {
           className="bg-white rounded-lg shadow-sm border border-gray-200"
         >
           {isLoadingDetails ? (
-            <div className="p-6 text-center">
-              <Loader2 className="h-12 w-12 text-blue-500 mx-auto mb-4 animate-spin" />
-              <p className="text-gray-600">Loading medicine details...</p>
+            <div className="p-6 space-y-6">
+              {/* Header Skeleton */}
+              <div className="flex items-center space-x-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-[250px]" />
+                  <Skeleton className="h-4 w-[150px]" />
+                </div>
+              </div>
+              
+              {/* Content Sections Skeleton */}
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="space-y-3">
+                  <div className="flex items-center space-x-2">
+                    <Skeleton className="h-5 w-5 rounded" />
+                    <Skeleton className="h-5 w-[120px]" />
+                  </div>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-[80%]" />
+                    <Skeleton className="h-4 w-[60%]" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : selectedMedicine ? (
             <div className="p-6">

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Check, Droplets, Clock, AlertCircle, Settings, Trash2 } from 'lucide-react';
 import { notificationService, Notification } from '../services/notificationService';
+import { Skeleton } from './ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
@@ -173,9 +174,23 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = React.memo(({ 
             {/* Content */}
             <div className="max-h-80 overflow-y-auto">
               {loading ? (
-                <div className="p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                  <p className="text-gray-500 mt-2">Loading notifications...</p>
+                <div className="divide-y divide-gray-100">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-4 space-y-3">
+                      <div className="flex items-start space-x-3">
+                        <Skeleton className="h-5 w-5 rounded-full mt-1" />
+                        <div className="flex-1 space-y-2">
+                          <Skeleton className="h-4 w-3/4" />
+                          <Skeleton className="h-3 w-1/2" />
+                          <Skeleton className="h-3 w-1/4" />
+                        </div>
+                        <div className="flex space-x-1">
+                          <Skeleton className="h-6 w-6 rounded" />
+                          <Skeleton className="h-6 w-6 rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center">

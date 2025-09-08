@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Droplets, MapPin, Phone, Clock, Plus, AlertCircle, X } from 'lucide-react';
+import { Droplets, Plus, MapPin, Phone, Clock, AlertCircle, X } from 'lucide-react';
 import { BloodRequest } from '../types';
 import { getCurrentUser } from '../utils/storage';
 import { bloodRequestsAPI } from '../services/api';
+import { Skeleton } from '../components/ui/skeleton';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 
@@ -18,6 +19,7 @@ const urgencyLevels = [
 const BloodBank: React.FC = () => {
   const [requests, setRequests] = useState<BloodRequest[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [formData, setFormData] = useState({
     bloodGroup: '',
     urgency: 'medium' as 'low' | 'medium' | 'high' | 'critical',
@@ -32,10 +34,13 @@ const BloodBank: React.FC = () => {
   useEffect(() => {
     const loadBloodRequests = async () => {
       try {
+        setIsLoading(true);
         const allRequests = await bloodRequestsAPI.getActiveRequests();
         setRequests(allRequests.filter(req => req.status === 'active'));
       } catch (error) {
         toast.error('Failed to load blood requests');
+      } finally {
+        setIsLoading(false);
       }
     };
     loadBloodRequests();
@@ -294,7 +299,40 @@ const BloodBank: React.FC = () => {
           <h2 className="text-xl font-semibold text-gray-900">Active Blood Requests ({requests.length})</h2>
         </div>
         
-        {requests.length === 0 ? (
+        {isLoading ? (
+          <div className="divide-y divide-gray-200">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="p-6 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 space-y-3">
+                    <div className="flex items-center space-x-3">
+                      <Skeleton className="h-9 w-9 rounded-full" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-4 w-24" />
+                      </div>
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <Skeleton className="h-4 w-28" />
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-32" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                  </div>
+                  <div className="flex flex-col space-y-2">
+                    <Skeleton className="h-8 w-24 rounded-lg" />
+                    <Skeleton className="h-8 w-24 rounded-lg" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : requests.length === 0 ? (
           <div className="p-12 text-center">
             <Droplets className="h-16 w-16 text-gray-300 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Active Requests</h3>
