@@ -10,7 +10,7 @@ export default defineConfig({
       // It tells Vite to forward any request starting with '/api' 
       // to your backend server.
       '/api': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:5000',
         changeOrigin: true,
       },
     },
