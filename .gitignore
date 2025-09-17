@@ -13,3 +13,8 @@ node_modules/
 
 *.log
 startup.log
+.vite/
+node_modules/.vite/
+**/node_modules/.vite/
+**/_metadata.json
+**/deps/_metadata.json
