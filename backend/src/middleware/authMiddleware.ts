@@ -3,12 +3,12 @@ import expressAsyncHandler from 'express-async-handler';
 import User, { IUser } from '../models/userModel'; // Import the IUser interface
 import { Request, Response, NextFunction } from 'express';
 
-// Define and export a custom interface for our request object
+// Define and export a custom interface for our request object                          
 export interface AuthRequest extends Request {
   user?: IUser; // Attach the user property with the correct IUser type
 }
 
-const protect = expressAsyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {
+const protect = expressAsyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {    
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
