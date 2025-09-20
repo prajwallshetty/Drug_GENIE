@@ -8,7 +8,7 @@ export interface AuthRequest extends Request {
   user?: IUser; // Attach the user property with the correct IUser type
 }
 
-const protect = expressAsyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {    
+const protect = expressAsyncHandler(async (req: AuthRequest, res: Response, next: NextFunction) => {      
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
