@@ -22,7 +22,7 @@ const protect = expressAsyncHandler(async (req: AuthRequest, res: Response, next
     }
   }
   if (!token) {
-    res.status(401);
+    res.status(401);                      
     throw new Error('Not authorized, no token');
   }
 });
